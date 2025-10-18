@@ -1,13 +1,739 @@
 <!DOCTYPE html>
-<html lang="">
-  <head>
-    <meta charset="UTF-8">
-    <link rel="icon" href="/favicon.ico">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vite App</title>
-  </head>
-  <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.js"></script>
-  </body>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+   <link rel="stylesheet" href="styles.css">
+   <title>AfterBell Learning App</title>
+   <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+</head>
+<body>
+   <div id="app">
+      <header>
+         <h1><i class="fas fa-graduation-cap"></i> {{ sitename }}</h1>
+         <div class="header-actions">
+            <button v-if="showCart" class="back-btn" @click="goBack">
+               <span class="fas fa-arrow-left"></span> Go Back
+            </button>
+            <button class="cart-btn" @click="toggleCart" :disabled="cart.length === 0">
+               <span class="fas fa-shopping-cart"></span> 
+               <span v-if="!showCart">View Cart</span>
+               <span v-else>Continue Shopping</span>
+               <span v-if="cart.length > 0" class="cart-badge">{{ cart.length }}</span>
+            </button>
+         </div>
+      </header>
+
+      <main> 
+         <!-- Lessons View -->
+         <div v-if="!showCart"> 
+            <h2><i class="fas fa-chalkboard-teacher"></i> Available Lessons</h2>
+            
+            <!-- Search Bar Section -->
+            <div class="search-section">
+              <div class="search-container">
+                  <i class="fas fa-search search-icon"></i>
+                  <input 
+                    type="text" 
+                    v-model="searchQuery" 
+                    class="search-input"
+                    placeholder="Search lessons by subject, location, or price..."
+                    @input="searchLessons"
+                  >
+                  <span v-if="searchQuery" class="clear-search" @click="clearSearch">
+                    <i class="fas fa-times"></i>
+                  </span>
+              </div>
+              <div v-if="searchQuery && filteredLessons.length === 0" class="no-results">
+                  <i class="fas fa-search"></i>
+                  <p>No lessons found matching "{{ searchQuery }}"</p>
+                  <small>Try searching with different keywords</small>
+              </div>
+              <div v-if="searchQuery && filteredLessons.length > 0" class="search-results-info">
+                  <i class="fas fa-info-circle"></i>
+                  Found {{ filteredLessons.length }} lesson(s) matching "{{ searchQuery }}"
+              </div>
+            </div>
+
+            <div class="sort-controls">
+               <div>
+                  <label><i class="fas fa-sort"></i> Sort by:</label>
+                  <select v-model="sortBy">
+                     <option value="subject">Subject</option>
+                     <option value="location">Location</option>
+                     <option value="price">Price</option>
+                     <option value="spaces">Availability</option>
+                  </select>
+               </div>
+               <div>
+                  <label><i class="fas fa-sort-amount-down"></i> Order:</label>
+                  <select v-model="sortOrder">
+                     <option value="asc">Ascending</option>
+                     <option value="desc">Descending</option>
+                  </select>
+               </div>
+            </div>
+
+            <!-- Loading State -->
+            <div v-if="loading" class="loading-state">
+               <i class="fas fa-spinner fa-spin" style="font-size: 3rem; color: #667eea;"></i>
+               <p>Loading lessons...</p>
+            </div>
+
+            <!-- Error State -->
+            <div v-if="error" class="error-state">
+               <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: #ff6b6b;"></i>
+               <p>{{ error }}</p>
+               <button @click="fetchLessons" class="btn-retry">Retry</button>
+            </div>
+
+            <!-- Lessons Grid -->
+            <div v-if="!loading && !error" class="lessons-grid">
+               <div v-for="lesson in filteredLessons" :key="lesson._id" class="lesson-card">
+                  <div class="lesson-icon">
+                     <i :class="lesson.icon"></i>
+                  </div>
+                  <h3 class="lesson-title">{{ lesson.subject }}</h3> 
+                  <div class="lesson-details">
+                     <div class="lesson-detail-item"> 
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>{{ lesson.location }}</span>
+                     </div>
+                  </div>
+                  <div class="lesson-price">MUR {{ lesson.price.toFixed(2) }}</div> 
+                  <div class="lesson-spaces" :class="getSpacesClass(lesson.spaces)">
+                     <i class="fas fa-users"></i>
+                     <span v-if="lesson.spaces > 0">{{ lesson.spaces }} spaces available</span>
+                     <span v-else>No spaces available</span>
+                  </div>
+                  <button class="btn-add-cart" @click="addToCart(lesson)" :disabled="lesson.spaces === 0">
+                     <i class="fas fa-cart-plus"></i>
+                     <span v-if="lesson.spaces > 0">Add to Cart</span>
+                     <span v-else>Sold Out</span>
+                  </button>
+               </div>
+            </div>
+         </div>
+
+         <!-- Cart View -->
+         <div v-else class="cart-section">
+            <h2><i class="fas fa-shopping-cart"></i> Shopping Cart</h2>
+            
+            <div v-if="cart.length === 0" class="cart-empty">
+               <i class="fas fa-shopping-basket"></i>
+               <p>Your cart is empty</p>
+               <p style="font-size: 1rem; color: #bbb;">Add some lessons to get started!</p>
+            </div>
+
+            <div v-else>
+               <div class="cart-items">
+                  <div v-for="(item, index) in cart" :key="index" class="cart-item">
+                     <div class="cart-item-content">
+                        <div class="cart-item-title">
+                           <i :class="item.icon" style="color: #667eea; margin-right: 10px;"></i>
+                           {{ item.subject }}
+                        </div>
+                        <div class="cart-item-details">
+                           <i class="fas fa-map-marker-alt"></i> {{ item.location }}
+                        </div>
+                     </div>
+                     <div class="cart-item-actions">
+                        <div class="cart-item-price">MUR {{ item.price.toFixed(2) }}</div>
+                        <button class="btn-remove" @click="removeFromCart(index)">
+                           <i class="fas fa-trash-alt"></i> Remove
+                        </button>
+                     </div>
+                  </div>
+               </div>
+
+               <div class="cart-summary">
+                  <div style="color: #666; margin-bottom: 10px;">
+                     <i class="fas fa-info-circle"></i> Total Items: {{ cart.length }}
+                  </div>
+                  <div class="cart-total">
+                     <span>Total:</span>
+                     <span class="cart-total-amount">MUR {{ cartTotal.toFixed(2) }}</span>
+                  </div>
+               </div>
+                           <!-- Enhanced Checkout Form for Mauritius -->
+                  <div class="checkout-form">
+                     <h3><i class="fas fa-credit-card"></i> Checkout Information</h3>
+                     
+                     <div class="form-group">
+                        <label for="name"><i class="fas fa-user"></i> Full Name *</label>
+                        <input 
+                           type="text" 
+                           id="name" 
+                           v-model="checkoutInfo.name"
+                           :class="{'invalid': nameError}"
+                           placeholder="Enter your full name (letters only)"
+                           @blur="validateName"
+                           @input="validateName"
+                        >
+                        <p v-if="nameError" class="error-message">
+                           <i class="fas fa-exclamation-circle"></i>
+                           {{ nameError }}
+                        </p>
+                     </div>
+
+                     <div class="form-group">
+                        <label for="address"><i class="fas fa-home"></i> Address *</label>
+                        <input 
+                           type="text" 
+                           id="address" 
+                           v-model="checkoutInfo.address"
+                           :class="{'invalid': addressError}"
+                           placeholder="Enter your street address"
+                           @blur="validateAddress"
+                        >
+                        <p v-if="addressError" class="error-message">
+                           <i class="fas fa-exclamation-circle"></i>
+                           {{ addressError }}
+                        </p>
+                     </div>
+
+                     <div class="form-group">
+                        <label for="city"><i class="fas fa-city"></i> City *</label>
+                        <select 
+                           id="city" 
+                           v-model="checkoutInfo.city"
+                           :class="{'invalid': cityError}"
+                           @change="validateCity"
+                        >
+                           <option value="" disabled>Select your city</option>
+                           <option value="Port Louis">Port Louis</option>
+                           <option value="Beau Bassin-Rose Hill">Beau Bassin-Rose Hill</option>
+                           <option value="Vacoas-Phoenix">Vacoas-Phoenix</option>
+                           <option value="Curepipe">Curepipe</option>
+                           <option value="Quatre Bornes">Quatre Bornes</option>
+                           <option value="Triolet">Triolet</option>
+                           <option value="Goodlands">Goodlands</option>
+                           <option value="Centre de Flacq">Centre de Flacq</option>
+                           <option value="Mahebourg">Mahebourg</option>
+                           <option value="Saint Pierre">Saint Pierre</option>
+                           <option value="Grand Baie">Grand Baie</option>
+                           <option value="Bambous">Bambous</option>
+                           <option value="Riviere du Rempart">Riviere du Rempart</option>
+                           <option value="Chemin Grenier">Chemin Grenier</option>
+                           <option value="Pamplemousses">Pamplemousses</option>
+                        </select>
+                        <p v-if="cityError" class="error-message">
+                           <i class="fas fa-exclamation-circle"></i>
+                           {{ cityError }}
+                        </p>
+                     </div>
+
+                     <div class="form-group">
+                        <label for="postcode"><i class="fas fa-mail-bulk"></i> Postcode *</label>
+                        <input 
+                           type="text" 
+                           id="postcode" 
+                           v-model="checkoutInfo.postcode"
+                           :class="{'invalid': postcodeError}"
+                           placeholder="Enter postcode (e.g., 11302)"
+                           @blur="validatePostcode"
+                           maxlength="5"
+                        >
+                        <p v-if="postcodeError" class="error-message">
+                           <i class="fas fa-exclamation-circle"></i>
+                           {{ postcodeError }}
+                        </p>
+                     </div>
+
+                     <div class="form-group">
+                        <label for="phone"><i class="fas fa-phone"></i> Phone Number *</label>
+                        <input 
+                           type="tel" 
+                           id="phone" 
+                           v-model="checkoutInfo.phone"
+                           :class="{'invalid': phoneError}"
+                           placeholder="+230 followed by 8 digits (e.g., +230 5123 4567)"
+                           @blur="validatePhone"
+                           @input="validatePhone"
+                        >
+                        <p v-if="phoneError" class="error-message">
+                           <i class="fas fa-exclamation-circle"></i>
+                           {{ phoneError }}
+                        </p>
+                     </div>
+
+                     <div class="form-group">
+                        <label><i class="fas fa-gift"></i> Gift Option</label>
+                        <div class="checkbox-container">
+                           <input 
+                              type="checkbox" 
+                              id="gift" 
+                              v-model="checkoutInfo.gift"
+                              class="gift-checkbox"
+                           >
+                           <label for="gift" class="checkbox-label">Send as a gift</label>
+                        </div>
+                     </div>
+
+                     <!-- Order Summary Before Checkout -->
+                     <div v-if="showOrderSummary" class="order-preview">
+                        <h4><i class="fas fa-clipboard-list"></i> Order Summary</h4>
+                        <div class="summary-details">
+                           <p><strong>Name:</strong> {{ checkoutInfo.name }}</p>
+                           <p><strong>Phone:</strong> {{ checkoutInfo.phone }}</p>
+                           <p><strong>Address:</strong> {{ checkoutInfo.address }}</p>
+                           <p><strong>City:</strong> {{ checkoutInfo.city }}</p>
+                           <p><strong>Postcode:</strong> {{ checkoutInfo.postcode }}</p>
+                           <p><strong>Gift:</strong> {{ checkoutInfo.gift ? 'Yes' : 'No' }}</p>
+                           <p><strong>Total Items:</strong> {{ cart.length }}</p>
+                           <p><strong>Total Amount:</strong> MUR {{ cartTotal.toFixed(2) }}</p>
+                        </div>
+                        <div class="summary-actions">
+                           <button class="btn-cancel" @click="cancelCheckout">
+                              <i class="fas fa-times"></i> Cancel
+                           </button>
+                           <button class="btn-confirm" @click="confirmOrder">
+                              <i class="fas fa-check"></i> Confirm Order
+                           </button>
+                        </div>
+                     </div>
+
+                     <button 
+                        class="btn-checkout" 
+                        @click="proceedToCheckout" 
+                        :disabled="!isCheckoutValid || submittingOrder"
+                        v-if="!showOrderSummary"
+                     >
+                        <i class="fas fa-spinner fa-spin" v-if="submittingOrder"></i>
+                        <i class="fas fa-shopping-bag" v-else></i>
+                        {{ submittingOrder ? 'Processing...' : 'Proceed to Checkout' }}
+                     </button>
+                  </div>
+
+                  <div v-if="orderConfirmed" class="success-message">
+                     <i class="fas fa-check-circle"></i>
+                     <h4>Order Confirmed!</h4>
+                     <p>Thank you for your purchase, {{ checkoutInfo.name }}!</p>
+                     <p><strong>Order ID:</strong> {{ orderId }}</p>
+                     <div class="order-details">
+                        <p><strong>Delivery Address:</strong> {{ checkoutInfo.address }}, {{ checkoutInfo.city }}, {{ checkoutInfo.postcode }}</p>
+                        <p><strong>Contact:</strong> {{ checkoutInfo.phone }}</p>
+                        <p v-if="checkoutInfo.gift"><i class="fas fa-gift"></i> This order will be sent as a gift</p>
+                     </div>
+                     <p style="margin-top: 15px; font-size: 1rem;">
+                        <i class="fas fa-envelope"></i> A confirmation SMS will be sent to your phone.
+                     </p>
+                  </div>
+
+                  <div v-if="error" class="error-message">
+                     <i class="fas fa-exclamation-circle"></i>
+                     {{ error }}
+                  </div>
+                  </div>   
+            </div>
+         </div>
+      </main>
+   </div>
+
+   <script>
+      new Vue({
+         el: "#app",
+         data: {
+         sitename: "AfterBell Learning App",
+         showCart: false,
+         sortBy: "subject",
+         sortOrder: "asc",
+         searchQuery: "",
+         lessons: [],
+         cart: [],
+         checkoutInfo: {
+            name: "",
+            phone: "",
+            address: "",
+            city: "",
+            postcode: "",
+            gift: false
+         },
+         nameError: "",
+         phoneError: "",
+         addressError: "",
+         cityError: "",
+         postcodeError: "",
+         orderConfirmed: false,
+         orderId: "",
+         loading: false,
+         error: null,
+         submittingOrder: false,
+         searchTimeout: null,
+         showOrderSummary: false,
+         apiUrl: 'http://localhost:3000/api'
+      },
+         
+         // Fetch lessons when component is created
+         created() {
+            this.fetchLessons();
+         },
+         
+         computed: {
+            sortedLessons() {
+               let sorted = [...this.lessons];
+               
+               sorted.sort((a, b) => {
+                  let compareA, compareB;
+                  
+                  switch(this.sortBy) {
+                     case 'subject':
+                        compareA = a.subject.toLowerCase();
+                        compareB = b.subject.toLowerCase();
+                        break;
+                     case 'location':
+                        compareA = a.location.toLowerCase();
+                        compareB = b.location.toLowerCase();
+                        break;
+                     case 'price':
+                        compareA = a.price;
+                        compareB = b.price;
+                        break;
+                     case 'spaces':
+                        compareA = a.spaces;
+                        compareB = b.spaces;
+                        break;
+                     default:
+                        compareA = a.subject;
+                        compareB = b.subject;
+                  }
+                  
+                  if (compareA < compareB) return this.sortOrder === 'asc' ? -1 : 1;
+                  if (compareA > compareB) return this.sortOrder === 'asc' ? 1 : -1;
+                  return 0;
+               });
+               
+               return sorted;
+            },
+            
+            filteredLessons() {
+               return this.sortedLessons;
+            },
+            
+            cartTotal() {
+               return this.cart.reduce((total, item) => total + item.price, 0);
+            },
+            
+            isCheckoutValid() {
+   const nameRegex = /^[a-zA-Z\s]+$/;
+   const phoneRegex = /^\+230[0-9]{8}$/;
+   const cleanPhone = this.checkoutInfo.phone.replace(/\s/g, '');
+   const postcodeRegex = /^[0-9]{5}$/;
+   
+   return this.checkoutInfo.name.trim().length >= 2 && 
+          nameRegex.test(this.checkoutInfo.name) &&
+          phoneRegex.test(cleanPhone) &&
+          this.checkoutInfo.address.trim().length >= 5 &&
+          this.checkoutInfo.city !== "" &&
+          postcodeRegex.test(this.checkoutInfo.postcode);
+}
+         },
+         methods: {
+            // FETCH 1: Get all lessons from backend (3%)
+            async fetchLessons() {
+               this.loading = true;
+               this.error = null;
+               
+               try {
+                  const response = await fetch(`${this.apiUrl}/lessons`);
+                  
+                  if (!response.ok) {
+                     throw new Error(`HTTP error! status: ${response.status}`);
+                  }
+                  
+                  const data = await response.json();
+                  
+                  if (data.success) {
+                     this.lessons = data.data;
+                     console.log('✅ Fetched lessons:', data.count);
+                  } else {
+                     throw new Error('Failed to fetch lessons');
+                  }
+                  
+               } catch (error) {
+                  console.error('❌ Error fetching lessons:', error);
+                  this.error = 'Failed to load lessons. Please check if the server is running.';
+               } finally {
+                  this.loading = false;
+               }
+            },
+            
+            // Search lessons with backend API (Search functionality - 3%)
+            async searchLessons() {
+               // Clear previous timeout
+               clearTimeout(this.searchTimeout);
+               
+               // If search is empty, fetch all lessons
+               if (!this.searchQuery.trim()) {
+                  this.fetchLessons();
+                  return;
+               }
+               
+               // Debounce: wait 300ms after user stops typing
+               this.searchTimeout = setTimeout(async () => {
+                  this.loading = true;
+                  this.error = null;
+                  
+                  try {
+                     const response = await fetch(
+                        `${this.apiUrl}/lessons/search?q=${encodeURIComponent(this.searchQuery)}`
+                     );
+                     
+                     if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                     }
+                     
+                     const data = await response.json();
+                     
+                     if (data.success) {
+                        this.lessons = data.data;
+                        console.log(`✅ Search results for "${this.searchQuery}":`, data.count);
+                     }
+                     
+                  } catch (error) {
+                     console.error('❌ Error searching lessons:', error);
+                     this.error = 'Search failed. Please try again.';
+                  } finally {
+                     this.loading = false;
+                  }
+               }, 300);
+            },
+            
+            addToCart(lesson) {
+               if (lesson.spaces > 0) {
+                  // Add to local cart
+                  this.cart.push({...lesson});
+                  
+                  // Update local lesson spaces
+                  lesson.spaces--;
+                  
+                  console.log(`✅ Added ${lesson.subject} to cart`);
+               }
+            },
+            
+            removeFromCart(index) {
+               const removedLesson = this.cart[index];
+               
+               // Find the lesson in the lessons array and increment spaces
+               const originalLesson = this.lessons.find(l => l._id === removedLesson._id);
+               if (originalLesson) {
+                  originalLesson.spaces++;
+               }
+               
+               // Remove from cart
+               this.cart.splice(index, 1);
+               console.log(`✅ Removed ${removedLesson.subject} from cart`);
+            },
+            
+            toggleCart() {
+               this.showCart = !this.showCart;
+            },
+            
+            goBack() {
+               this.showCart = false;
+            },
+            
+            clearSearch() {
+               this.searchQuery = "";
+               this.fetchLessons();
+            },
+            
+            getSpacesClass(spaces) {
+               if (spaces === 0) return 'unavailable';
+               if (spaces <= 3) return 'limited';
+               return 'available';
+            },
+            
+        // Enhanced validation methods
+validateName() {
+   const nameRegex = /^[a-zA-Z\s]+$/;
+   
+   if (!this.checkoutInfo.name.trim()) {
+      this.nameError = "Name is required";
+      return false;
+   } else if (this.checkoutInfo.name.trim().length < 2) {
+      this.nameError = "Name must be at least 2 characters";
+      return false;
+   } else if (!nameRegex.test(this.checkoutInfo.name)) {
+      this.nameError = "Name must contain only letters and spaces";
+      return false;
+   }
+   this.nameError = "";
+   return true;
+},
+
+validatePhone() {
+   // Phone must start with +230 and be followed by 8 digits
+   const phoneRegex = /^\+230[0-9]{8}$/;
+   const phoneWithSpacesRegex = /^\+230\s?[0-9]{4}\s?[0-9]{4}$/;
+   
+   // Remove spaces for validation
+   const cleanPhone = this.checkoutInfo.phone.replace(/\s/g, '');
+   
+   if (!this.checkoutInfo.phone.trim()) {
+      this.phoneError = "Phone number is required";
+      return false;
+   } else if (!phoneRegex.test(cleanPhone) && !phoneWithSpacesRegex.test(this.checkoutInfo.phone)) {
+      this.phoneError = "Phone must start with +230 followed by 8 digits (e.g., +230 5123 4567)";
+      return false;
+   }
+   this.phoneError = "";
+   return true;
+},
+
+validateAddress() {
+   if (!this.checkoutInfo.address.trim()) {
+      this.addressError = "Address is required";
+      return false;
+   } else if (this.checkoutInfo.address.trim().length < 5) {
+      this.addressError = "Address must be at least 5 characters";
+      return false;
+   }
+   this.addressError = "";
+   return true;
+},
+
+validateCity() {
+   if (!this.checkoutInfo.city) {
+      this.cityError = "Please select a city";
+      return false;
+   }
+   this.cityError = "";
+   return true;
+},
+
+validatePostcode() {
+   const postcodeRegex = /^[0-9]{5}$/;
+   
+   if (!this.checkoutInfo.postcode.trim()) {
+      this.postcodeError = "Postcode is required";
+      return false;
+   } else if (!postcodeRegex.test(this.checkoutInfo.postcode)) {
+      this.postcodeError = "Postcode must be 5 digits";
+      return false;
+   }
+   this.postcodeError = "";
+   return true;
+},
+
+// Show order summary before final submission
+proceedToCheckout() {
+   const nameValid = this.validateName();
+   const phoneValid = this.validatePhone();
+   const addressValid = this.validateAddress();
+   const cityValid = this.validateCity();
+   const postcodeValid = this.validatePostcode();
+   
+   if (nameValid && phoneValid && addressValid && cityValid && postcodeValid) {
+      this.showOrderSummary = true;
+   }
+},
+
+cancelCheckout() {
+   this.showOrderSummary = false;
+},
+
+// Confirm and submit order
+async confirmOrder() {
+   this.submittingOrder = true;
+   this.showOrderSummary = false;
+   
+   try {
+      // Clean phone number (remove spaces)
+      const cleanPhone = this.checkoutInfo.phone.replace(/\s/g, '');
+      
+      // Prepare order data
+      const orderData = {
+         name: this.checkoutInfo.name,
+         phone: cleanPhone,
+         address: this.checkoutInfo.address,
+         city: this.checkoutInfo.city,
+         postcode: this.checkoutInfo.postcode,
+         gift: this.checkoutInfo.gift,
+         lessonIds: this.cart.map(item => item._id),
+         lessons: this.cart.map(item => ({
+            subject: item.subject,
+            location: item.location,
+            price: item.price,
+            spaces: 1
+         })),
+         totalAmount: this.cartTotal,
+         orderDate: new Date().toISOString()
+      };
+      
+      // POST order to backend
+      const orderResponse = await fetch(`${this.apiUrl}/orders`, {
+         method: 'POST',
+         headers: {
+            'Content-Type': 'application/json'
+         },
+         body: JSON.stringify(orderData)
+      });
+      
+      if (!orderResponse.ok) {
+         throw new Error('Failed to create order');
+      }
+      
+      const orderResult = await orderResponse.json();
+      console.log('✅ Order created:', orderResult);
+      
+      this.orderId = orderResult.orderId;
+      
+      // PUT update spaces for each lesson
+      const updatePromises = this.cart.map(async (item) => {
+         const lesson = this.lessons.find(l => l._id === item._id);
+         if (lesson) {
+            const response = await fetch(`${this.apiUrl}/lessons/${item._id}`, {
+               method: 'PUT',
+               headers: {
+                  'Content-Type': 'application/json'
+               },
+               body: JSON.stringify({
+                  spaces: lesson.spaces
+               })
+            });
+            
+            if (!response.ok) {
+               console.error(`Failed to update spaces for ${item.subject}`);
+            } else {
+               console.log(`✅ Updated spaces for ${item.subject}`);
+            }
+         }
+      });
+      
+      await Promise.all(updatePromises);
+      
+      // Show success message
+      this.orderConfirmed = true;
+      
+      // Reset after 8 seconds
+      setTimeout(() => {
+         this.cart = [];
+         this.checkoutInfo = { 
+            name: "", 
+            phone: "", 
+            address: "", 
+            city: "", 
+            postcode: "", 
+            gift: false 
+         };
+         this.orderConfirmed = false;
+         this.showCart = false;
+         this.orderId = "";
+         this.fetchLessons();
+      }, 8000);
+      
+   } catch (error) {
+      console.error('❌ Error submitting order:', error);
+      alert('Failed to submit order. Please try again.');
+   } finally {
+      this.submittingOrder = false;
+   }
+},
+         }
+      });   
+   </script>
+</body>
 </html>

@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+   <title>Pet Store App</title>
+   <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+   <!--<link rel="stylesheet" href="styles2.css"-->
+   
+</head>
+<body>
+   <div id="app">
+      <header>
+         <h1>{{ sitename }}</h1>
+         <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button v-if="showCart" class="cart-btn back-btn" @click="goBack">
+               <span class="fas fa-arrow-left"></span> Go Back
+            </button>
+            <button class="cart-btn" @click="showCart = !showCart" :disabled="totalItemsInTheCart === 0">
+               <span class="fas fa-shopping-cart"></span> 
+               <span v-if="!showCart">View Cart</span>
+               <span v-else>View Products</span>
+               <span v-if="totalItemsInTheCart > 0" class="cart-badge">{{ totalItemsInTheCart }}</span>
+            </button>
+         </div>
+      </header>
+
+      <main>
+         <!-- Product View -->
+         <div v-if="!showCart">
+            <div class="product-container">
+               <div class="product-image">
+                  <img :src="product.image" :alt="product.title" class="img-fluid">
+               </div>
+               <div class="product-details">
+                  <h2>{{ product.title }}</h2>
+                  <p>{{ product.description }}</p>
+                  <p class="price">${{ (product.price / 100).toFixed(2) }}</p>
+                  <div class="stock-info" :class="{'out-of-stock': !canAddToCart}">
+                     <i class="fas fa-box"></i>
+                     <span v-if="canAddToCart">Available: {{ product.availableItemsInventory - totalItemsInTheCart }} items</span>
+                     <span v-else>Out of Stock</span>
+                  </div>
+                  <button class="btn-primary" @click="addItemToCart" :disabled="!canAddToCart">
+                     <i class="fas fa-cart-plus"></i> Add to Cart
+                  </button>
+               </div>
+            </div>
+         </div>
+
+         <!-- Cart View -->
+         <div v-else class="cart-section">
+            <h2><i class="fas fa-shopping-cart"></i> Shopping Cart</h2>
+            
+            <div v-if="totalItemsInTheCart === 0" class="cart-empty">
+               <i class="fas fa-shopping-basket" style="font-size: 3rem; color: #ccc;"></i>
+               <p>Your cart is empty</p>
+            </div>
+
+            <div v-else>
+               <div class="cart-items">
+                  <div class="cart-item" v-for="(item, index) in cart" :key="index">
+                     <div>
+                        <strong>{{ product.title }}</strong>
+                        <p style="margin: 0; color: #666;">Quantity: 1</p>
+                     </div>
+                     <div>
+                        <strong>${{ (product.price / 100).toFixed(2) }}</strong>
+                     </div>
+                  </div>
+               </div>
+               
+               <div class="cart-total">
+                  Total: ${{ ((totalItemsInTheCart * product.price) / 100).toFixed(2) }}
+               </div>
+
+               <!-- Checkout Form -->
+               <div class="checkout-form">
+                  <h3 style="margin-bottom: 20px; color: #333;">Checkout Information</h3>
+                  
+                  <div class="form-group">
+                     <label for="name">Name *</label>
+                     <input 
+                        type="text" 
+                        id="name" 
+                        v-model="checkoutInfo.name"
+                        :class="{'invalid': nameError}"
+                        placeholder="Enter your full name"
+                     >
+                     <p v-if="nameError" class="error-message">{{ nameError }}</p>
+                  </div>
+
+                  <div class="form-group">
+                     <label for="phone">Phone Number *</label>
+                     <input 
+                        type="tel" 
+                        id="phone" 
+                        v-model="checkoutInfo.phone"
+                        :class="{'invalid': phoneError}"
+                        placeholder="Enter your phone number"
+                     >
+                     <p v-if="phoneError" class="error-message">{{ phoneError }}</p>
+                  </div>
+
+                  <button class="btn-primary" @click="submitOrder" :disabled="!isCheckoutValid">
+                     <i class="fas fa-check-circle"></i> Complete Order
+                  </button>
+               </div>
+
+               <div v-if="orderConfirmed" class="success-message">
+                  <i class="fas fa-check-circle" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                  <p><strong>Order Confirmed!</strong></p>
+                  <p>Thank you for your purchase, {{ checkoutInfo.name }}!</p>
+                  <p>We'll contact you at {{ checkoutInfo.phone }} for delivery details.</p>
+               </div>
+            </div>
+         </div>
+      </main>
+   </div>
+
+   <script>
+      let webstore = new Vue({
+         el: "#app",
+         data: {
+            sitename: "Pet Store App",
+            showCart: false,
+            product: {
+               id: 1001,
+               title: "Cat Food, 25lb bag",
+               description: "A 25 pound bag of irresistible, organic goodness for your cat.",
+               price: 2500,
+               image: "https://via.placeholder.com/400x400/667eea/ffffff?text=Cat+Food",
+               availableItemsInventory: 5
+            },
+            cart: [],
+            checkoutInfo: {
+               name: "",
+               phone: ""
+            },
+            nameError: "",
+            phoneError: "",
+            orderConfirmed: false
+         },
+         methods: {
+            addItemToCart: function() {
+               this.cart.push(this.product.id);
+            },
+            validateName: function() {
+               if (!this.checkoutInfo.name.trim()) {
+                  this.nameError = "Name is required";
+                  return false;
+               } else if (this.checkoutInfo.name.trim().length < 2) {
+                  this.nameError = "Name must be at least 2 characters";
+                  return false;
+               } else if (!/^[a-zA-Z\s]+$/.test(this.checkoutInfo.name)) {
+                  this.nameError = "Name must contain only letters";
+                  return false;
+               }
+               this.nameError = "";
+               return true;
+            },
+            validatePhone: function() {
+               if (!this.checkoutInfo.phone.trim()) {
+                  this.phoneError = "Phone number is required";
+                  return false;
+               } else if (!/^[0-9]{10,}$/.test(this.checkoutInfo.phone.replace(/[\s\-\(\)]/g, ''))) {
+                  this.phoneError = "Please enter a valid phone number (at least 10 digits)";
+                  return false;
+               }
+               this.phoneError = "";
+               return true;
+            },
+            submitOrder: function() {
+               const nameValid = this.validateName();
+               const phoneValid = this.validatePhone();
+               
+               if (nameValid && phoneValid) {
+                  this.orderConfirmed = true;
+                  setTimeout(() => {
+                     this.cart = [];
+                     this.checkoutInfo = { name: "", phone: "" };
+                     this.orderConfirmed = false;
+                     this.showCart = false;
+                  }, 5000);
+               }
+            }
+         },
+         computed: {
+            totalItemsInTheCart: function() {
+               return this.cart.length;
+            },
+            canAddToCart: function() {
+               return this.product.availableItemsInventory > this.totalItemsInTheCart;
+            },
+            isCheckoutValid: function() {
+               return this.checkoutInfo.name.trim().length >= 2 && 
+                      /^[a-zA-Z\s]+$/.test(this.checkoutInfo.name) &&
+                      /^[0-9]{10,}$/.test(this.checkoutInfo.phone.replace(/[\s\-\(\)]/g, ''));
+            }
+         },
+         watch: {
+            'checkoutInfo.name': function() {
+               if (this.nameError) this.validateName();
+            },
+            'checkoutInfo.phone': function() {
+               if (this.phoneError) this.validatePhone();
+            }
+         }
+      })
+   </script>
+</body>
+</html>
