@@ -35,3 +35,7 @@ npm run build
 
 ## Technologies
 - Vue.js 2.6.14, Bootstrap, Fetch API
+
+
+## Live Application
+Hosted on GitHub Pages: https://teresa3456.github.io/afterbell-frontend/
