@@ -31,3 +31,7 @@ npm run build
 
 ## Features
 - Search, Sort, Cart, Checkout
+
+
+## Technologies
+- Vue.js 2.6.14, Bootstrap, Fetch API
