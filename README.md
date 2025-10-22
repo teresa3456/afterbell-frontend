@@ -27,3 +27,7 @@ npm run dev
 ```sh
 npm run build
 ```
+
+
+## Features
+- Search, Sort, Cart, Checkout
