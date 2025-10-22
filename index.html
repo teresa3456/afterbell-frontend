@@ -11,20 +11,90 @@
 </head>
 <body>
    <div id="app">
-      <header>
-         <h1><i class="fas fa-graduation-cap"></i> {{ sitename }}</h1>
-         <div class="header-actions">
-            <button v-if="showCart" class="back-btn" @click="goBack">
-               <span class="fas fa-arrow-left"></span> Go Back
-            </button>
-            <button class="cart-btn" @click="toggleCart" :disabled="cart.length === 0">
-               <span class="fas fa-shopping-cart"></span> 
-               <span v-if="!showCart">View Cart</span>
-               <span v-else>Continue Shopping</span>
-               <span v-if="cart.length > 0" class="cart-badge">{{ cart.length }}</span>
-            </button>
+            <!-- Welcome Screen -->
+      <div v-if="currentPage === 'welcome'" class="welcome-screen">
+         <div class="welcome-content">
+            <div class="logo-container">
+               <div class="logo-bell">
+                  <i class="fas fa-bell"></i>
+               </div>
+               <h1 class="app-title">AfterBell</h1>
+               <p class="app-subtitle">Learning Excellence</p>
+            </div>
+            <div class="loading-dots">
+               <span></span>
+               <span></span>
+               <span></span>
+            </div>
          </div>
-      </header>
+      </div>
+       <!-- Introduction Screen -->
+      <div v-if="currentPage === 'intro'" class="intro-screen">
+         <div class="intro-content">
+            <div class="intro-header">
+               <div class="intro-logo">
+                  <i class="fas fa-graduation-cap"></i>
+               </div>
+               <h1>Welcome to AfterBell</h1>
+               <p class="intro-tagline">Transform Your Learning Journey</p>
+            </div>
+
+            <div class="intro-features">
+               <div class="feature-card">
+                  <div class="feature-icon">
+                     <i class="fas fa-book-reader"></i>
+                  </div>
+                  <h3>Browse Lessons</h3>
+                  <p>Explore a wide variety of after-school lessons tailored to enhance your skills and knowledge across multiple subjects.</p>
+               </div>
+
+               <div class="feature-card">
+                  <div class="feature-icon">
+                     <i class="fas fa-calendar-check"></i>
+                  </div>
+                  <h3>Easy Enrollment</h3>
+                  <p>Seamlessly enroll in your preferred classes with our intuitive booking system. Secure your spot with just a few clicks.</p>
+               </div>
+
+               <div class="feature-card">
+                  <div class="feature-icon">
+                     <i class="fas fa-credit-card"></i>
+                  </div>
+                  <h3>Secure Payments</h3>
+                  <p>Complete your transactions safely and conveniently with our integrated payment system. Your information is always protected.</p>
+               </div>
+            </div>
+
+            <div class="intro-cta">
+               <button class="btn-get-started" @click="startApp">
+                  <span>Get Started</span>
+                  <i class="fas fa-arrow-right"></i>
+               </button>
+               <p class="intro-note">Join us today to unlock a world of opportunities for students enhancing their education</p>
+            </div>
+         </div>
+      </div>
+
+      <!-- Main App (Your existing content) -->
+      <div v-if="currentPage === 'main'" class="main-app">
+         <header>
+            <h1><i class="fas fa-graduation-cap"></i> {{ sitename }}</h1>
+            <div class="header-actions">
+               <button v-if="showCart" class="back-btn" @click="goBack">
+                  <span class="fas fa-arrow-left"></span> Go Back
+               </button>
+               <button class="cart-btn" @click="toggleCart" :disabled="cart.length === 0">
+                  <span class="fas fa-shopping-cart"></span> 
+                  <span v-if="!showCart">View Cart</span>
+                  <span v-else>Continue Shopping</span>
+                  <span v-if="cart.length > 0" class="cart-badge">{{ cart.length }}</span>
+               </button>
+            </div>
+         </header>
+
+
+
+      
 
       <main> 
          <!-- Lessons View -->
@@ -245,7 +315,7 @@
                      <div class="form-group">
                         <label for="phone"><i class="fas fa-phone"></i> Phone Number *</label>
                         <input 
-                           type="tel" 
+                           type
                            id="phone" 
                            v-model="checkoutInfo.phone"
                            :class="{'invalid': phoneError}"
@@ -259,18 +329,7 @@
                         </p>
                      </div>
 
-                     <div class="form-group">
-                        <label><i class="fas fa-gift"></i> Gift Option</label>
-                        <div class="checkbox-container">
-                           <input 
-                              type="checkbox" 
-                              id="gift" 
-                              v-model="checkoutInfo.gift"
-                              class="gift-checkbox"
-                           >
-                           <label for="gift" class="checkbox-label">Send as a gift</label>
-                        </div>
-                     </div>
+                     
 
                      <!-- Order Summary Before Checkout -->
                      <div v-if="showOrderSummary" class="order-preview">
@@ -281,7 +340,7 @@
                            <p><strong>Address:</strong> {{ checkoutInfo.address }}</p>
                            <p><strong>City:</strong> {{ checkoutInfo.city }}</p>
                            <p><strong>Postcode:</strong> {{ checkoutInfo.postcode }}</p>
-                           <p><strong>Gift:</strong> {{ checkoutInfo.gift ? 'Yes' : 'No' }}</p>
+                         
                            <p><strong>Total Items:</strong> {{ cart.length }}</p>
                            <p><strong>Total Amount:</strong> MUR {{ cartTotal.toFixed(2) }}</p>
                         </div>
@@ -315,7 +374,7 @@
                      <div class="order-details">
                         <p><strong>Delivery Address:</strong> {{ checkoutInfo.address }}, {{ checkoutInfo.city }}, {{ checkoutInfo.postcode }}</p>
                         <p><strong>Contact:</strong> {{ checkoutInfo.phone }}</p>
-                        <p v-if="checkoutInfo.gift"><i class="fas fa-gift"></i> This order will be sent as a gift</p>
+                       
                      </div>
                      <p style="margin-top: 15px; font-size: 1rem;">
                         <i class="fas fa-envelope"></i> A confirmation SMS will be sent to your phone.
@@ -331,11 +390,19 @@
          </div>
       </main>
    </div>
+   <!-- Bell Sound (Hidden Audio Element) -->
+      <audio id="bellSound" preload="auto">
+         <source src="https://actions.google.com/sounds/v1/alarms/bell_ring.ogg" type="audio/ogg">
+      </audio>
+   </div>
 
    <script>
       new Vue({
          el: "#app",
          data: {
+            // Page navigation
+            currentPage: 'welcome', // 'welcome', 'intro', 'main'
+            // Data for main app
          sitename: "AfterBell Learning App",
          showCart: false,
          sortBy: "subject",
@@ -349,7 +416,7 @@
             address: "",
             city: "",
             postcode: "",
-            gift: false
+          
          },
          nameError: "",
          phoneError: "",
@@ -368,7 +435,15 @@
          
          // Fetch lessons when component is created
          created() {
-            this.fetchLessons();
+            // Play bell sound and show welcome screen
+            setTimeout(() => {
+               this.playBellSound();
+            }, 500);
+            
+            // Transition to intro page after 3 seconds
+            setTimeout(() => {
+               this.currentPage = 'intro';
+            }, 3000);
          },
          
          computed: {
@@ -431,8 +506,22 @@
 }
          },
          methods: {
+             // New methods for page navigation
+            playBellSound() {
+               const audio = document.getElementById('bellSound');
+               if (audio) {
+                  audio.play().catch(e => console.log('Audio play failed:', e));
+               }
+            },
+            
+            startApp() {
+               this.currentPage = 'main';
+               // Fetch lessons when entering main app
+               this.fetchLessons();
+            },
             // FETCH 1: Get all lessons from backend (3%)
             async fetchLessons() {
+               
                this.loading = true;
                this.error = null;
                
@@ -651,7 +740,7 @@ async confirmOrder() {
          address: this.checkoutInfo.address,
          city: this.checkoutInfo.city,
          postcode: this.checkoutInfo.postcode,
-         gift: this.checkoutInfo.gift,
+         
          lessonIds: this.cart.map(item => item._id),
          lessons: this.cart.map(item => ({
             subject: item.subject,
@@ -717,7 +806,7 @@ async confirmOrder() {
             address: "", 
             city: "", 
             postcode: "", 
-            gift: false 
+      
          };
          this.orderConfirmed = false;
          this.showCart = false;

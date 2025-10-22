@@ -1,3 +1,359 @@
+/* ==============================
+   WELCOME & INTRO SCREENS
+   ============================== */
+
+/* Welcome Screen */
+.welcome-screen {
+   position: fixed;
+   top: 0;
+   left: 0;
+   width: 100%;
+   height: 100vh;
+   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   z-index: 9999;
+   animation: fadeIn 0.5s ease;
+}
+
+.welcome-content {
+   text-align: center;
+   color: white;
+}
+
+.logo-container {
+   animation: fadeInUp 0.8s ease;
+}
+
+.logo-bell {
+   width: 150px;
+   height: 150px;
+   margin: 0 auto 30px;
+   background: rgba(255, 255, 255, 0.2);
+   border-radius: 50%;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   animation: pulse 2s ease-in-out infinite;
+   backdrop-filter: blur(10px);
+   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.logo-bell i {
+   font-size: 5rem;
+   color: white;
+   animation: bellRing 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+   0%, 100% {
+      transform: scale(1);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+   }
+   50% {
+      transform: scale(1.05);
+      box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4);
+   }
+}
+
+@keyframes bellRing {
+   0%, 100% {
+      transform: rotate(0deg);
+   }
+   10%, 30% {
+      transform: rotate(-10deg);
+   }
+   20%, 40% {
+      transform: rotate(10deg);
+   }
+   50% {
+      transform: rotate(0deg);
+   }
+}
+
+.app-title {
+   font-size: 4rem;
+   font-weight: bold;
+   margin-bottom: 10px;
+   text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+   letter-spacing: 2px;
+}
+
+.app-subtitle {
+   font-size: 1.5rem;
+   opacity: 0.9;
+   font-weight: 300;
+   letter-spacing: 3px;
+   text-transform: uppercase;
+}
+
+.loading-dots {
+   margin-top: 50px;
+   display: flex;
+   justify-content: center;
+   gap: 10px;
+}
+
+.loading-dots span {
+   width: 12px;
+   height: 12px;
+   background: white;
+   border-radius: 50%;
+   animation: bounce 1.4s infinite ease-in-out both;
+}
+
+.loading-dots span:nth-child(1) {
+   animation-delay: -0.32s;
+}
+
+.loading-dots span:nth-child(2) {
+   animation-delay: -0.16s;
+}
+
+@keyframes bounce {
+   0%, 80%, 100% {
+      transform: scale(0);
+      opacity: 0.5;
+   }
+   40% {
+      transform: scale(1);
+      opacity: 1;
+   }
+}
+
+/* Introduction Screen */
+.intro-screen {
+   position: fixed;
+   top: 0;
+   left: 0;
+   width: 100%;
+   height: 100vh;
+   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+   overflow-y: auto;
+   z-index: 9998;
+   animation: fadeIn 0.5s ease;
+}
+
+.intro-content {
+   max-width: 1200px;
+   margin: 0 auto;
+   padding: 60px 20px;
+   color: white;
+}
+
+.intro-header {
+   text-align: center;
+   margin-bottom: 60px;
+   animation: fadeInDown 0.8s ease;
+}
+
+.intro-logo {
+   width: 120px;
+   height: 120px;
+   margin: 0 auto 30px;
+   background: rgba(255, 255, 255, 0.2);
+   border-radius: 50%;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   backdrop-filter: blur(10px);
+}
+
+.intro-logo i {
+   font-size: 4rem;
+   color: white;
+}
+
+.intro-header h1 {
+   font-size: 3.5rem;
+   font-weight: bold;
+   margin-bottom: 15px;
+   text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.intro-tagline {
+   font-size: 1.5rem;
+   opacity: 0.9;
+   font-weight: 300;
+}
+
+.intro-features {
+   display: grid;
+   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+   gap: 30px;
+   margin-bottom: 60px;
+}
+
+.feature-card {
+   background: rgba(255, 255, 255, 0.15);
+   backdrop-filter: blur(10px);
+   padding: 40px 30px;
+   border-radius: 20px;
+   text-align: center;
+   transition: all 0.3s ease;
+   animation: fadeInUp 0.8s ease;
+   animation-fill-mode: both;
+   border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.feature-card:nth-child(1) {
+   animation-delay: 0.2s;
+}
+
+.feature-card:nth-child(2) {
+   animation-delay: 0.4s;
+}
+
+.feature-card:nth-child(3) {
+   animation-delay: 0.6s;
+}
+
+.feature-card:hover {
+   transform: translateY(-10px);
+   background: rgba(255, 255, 255, 0.25);
+   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.feature-icon {
+   width: 80px;
+   height: 80px;
+   margin: 0 auto 20px;
+   background: rgba(255, 255, 255, 0.2);
+   border-radius: 50%;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+}
+
+.feature-icon i {
+   font-size: 2.5rem;
+   color: white;
+}
+
+.feature-card h3 {
+   font-size: 1.8rem;
+   margin-bottom: 15px;
+   font-weight: 600;
+}
+
+.feature-card p {
+   font-size: 1.1rem;
+   opacity: 0.9;
+   line-height: 1.6;
+}
+
+.intro-cta {
+   text-align: center;
+   animation: fadeInUp 1s ease;
+}
+
+.btn-get-started {
+   background: white;
+   color: #667eea;
+   border: none;
+   padding: 20px 60px;
+   border-radius: 50px;
+   font-size: 1.3rem;
+   font-weight: bold;
+   cursor: pointer;
+   transition: all 0.3s ease;
+   display: inline-flex;
+   align-items: center;
+   gap: 15px;
+   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+   margin-bottom: 20px;
+}
+
+.btn-get-started:hover {
+   transform: translateY(-5px) scale(1.05);
+   box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+   background: #f8f9fa;
+}
+
+.btn-get-started i {
+   font-size: 1.2rem;
+   transition: transform 0.3s ease;
+}
+
+.btn-get-started:hover i {
+   transform: translateX(5px);
+}
+
+.intro-note {
+   font-size: 1.1rem;
+   opacity: 0.8;
+   margin-top: 20px;
+}
+
+/* Main App Container */
+.main-app {
+   animation: fadeIn 0.5s ease;
+}
+
+/* Animations */
+@keyframes fadeIn {
+   from {
+      opacity: 0;
+   }
+   to {
+      opacity: 1;
+   }
+}
+
+@keyframes fadeInUp {
+   from {
+      opacity: 0;
+      transform: translateY(30px);
+   }
+   to {
+      opacity: 1;
+      transform: translateY(0);
+   }
+}
+
+@keyframes fadeInDown {
+   from {
+      opacity: 0;
+      transform: translateY(-30px);
+   }
+   to {
+      opacity: 1;
+      transform: translateY(0);
+   }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+   .app-title {
+      font-size: 2.5rem;
+   }
+   
+   .app-subtitle {
+      font-size: 1.2rem;
+   }
+   
+   .intro-header h1 {
+      font-size: 2.5rem;
+   }
+   
+   .intro-tagline {
+      font-size: 1.2rem;
+   }
+   
+   .feature-card {
+      padding: 30px 20px;
+   }
+   
+   .btn-get-started {
+      padding: 15px 40px;
+      font-size: 1.1rem;
+   }
+}
+
+
+
+
 * {
          margin: 0;
          padding: 0;
