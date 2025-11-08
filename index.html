@@ -60,8 +60,8 @@
                   <div class="feature-icon">
                      <i class="fas fa-credit-card"></i>
                   </div>
-                  <h3>Secure Payments</h3>
-                  <p>Complete your transactions safely and conveniently with our integrated payment system. Your information is always protected.</p>
+                  <h3>Secure Bookings</h3>
+                  <p>Complete your afterBell lesson booking safely and conveniently with our online booking system. Your information is always protected.</p>
                </div>
             </div>
 
@@ -227,7 +227,7 @@
                      <span class="cart-total-amount">MUR {{ cartTotal.toFixed(2) }}</span>
                   </div>
                </div>
-                           <!-- Enhanced Checkout Form for Mauritius -->
+                           <!-- Checkout Form for Mauritius -->
                   <div class="checkout-form">
                      <h3><i class="fas fa-credit-card"></i> Checkout Information</h3>
                      
@@ -430,7 +430,7 @@
          submittingOrder: false,
          searchTimeout: null,
          showOrderSummary: false,
-         apiUrl: 'http://localhost:3000/api'
+         apiUrl: 'https://afterbell-backend.onrender.com/api'
       },
          
          // Fetch lessons when component is created
@@ -766,7 +766,7 @@ async confirmOrder() {
       }
       
       const orderResult = await orderResponse.json();
-      console.log('✅ Order created:', orderResult);
+      console.log(' Order created:', orderResult);
       
       this.orderId = orderResult.orderId;
       
@@ -787,7 +787,7 @@ async confirmOrder() {
             if (!response.ok) {
                console.error(`Failed to update spaces for ${item.subject}`);
             } else {
-               console.log(`✅ Updated spaces for ${item.subject}`);
+               console.log(`Updated spaces for ${item.subject}`);
             }
          }
       });
@@ -826,24 +826,3 @@ async confirmOrder() {
    </script>
 </body>
 </html>
-<!-- Enhanced with search functionality -->
-
-<!-- Sort feature implemented -->
-
-<!-- Shopping cart functionality -->
-
-<!-- Checkout validation -->
-
-<!-- Complete checkout with order summary -->
-
-<!-- Order confirmation display -->
-
-<!-- Fetch GET implementation for lessons -->
-
-<!-- Fetch POST implementation for orders -->
-
-<!-- Fetch PUT implementation for updating spaces -->
-
-<!-- Welcome screen with animated logo -->
-
-<!-- API URL configuration for deployment -->
