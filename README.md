@@ -1,6 +1,6 @@
 # TerryAmbani-cw1-frontend
 
-This template should help get you started developing with Vue 3 in Vite.
+
 
 ## Recommended IDE Setup
 
@@ -29,12 +29,6 @@ npm run build
 ```
 
 
-## Features
-- Search, Sort, Cart, Checkout
-
-
-## Technologies
-- Vue.js 2.6.14, Bootstrap, Fetch API
 
 
 ## Live Application
@@ -45,7 +39,7 @@ Hosted on GitHub Pages: https://teresa3456.github.io/afterbell-frontend/
 ## 📚 Project Information
 - **Student:** Terry Ambani
 - **Module:** CST3144 - Full Stack Development
-- **Academic Year:** 2024-25
+- **Academic Year:** 2025-26
 
 ## 🔗 Important Links
 
